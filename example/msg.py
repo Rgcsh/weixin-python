@@ -14,7 +14,7 @@ app.add_url_rule("/", view_func=msg.view_func)
 
 @msg.all
 def all_test(**kwargs):
-    print kwargs
+    print(kwargs)
     # 或者直接返回
     # return "all"
     return msg.reply(
@@ -36,19 +36,19 @@ def world(**kwargs):
 
 @msg.image
 def image(**kwargs):
-    print kwargs
+    print(kwargs)
     return ""
 
 
 @msg.subscribe
 def subscribe(**kwargs):
-    print kwargs
+    print(kwargs)
     return ""
 
 
 @msg.unsubscribe
 def unsubscribe(**kwargs):
-    print kwargs
+    print(kwargs)
     return ""
 
 

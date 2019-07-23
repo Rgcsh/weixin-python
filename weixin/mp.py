@@ -3,19 +3,18 @@
 
 from __future__ import unicode_literals
 
-import os
-import time
-import json
 import hashlib
-import string
+import json
+import os
 import random
+import string
+import time
+
 import requests
 
 from .base import Map, WeixinError
 
-
 __all__ = ("WeixinMPError", "WeixinMP")
-
 
 DEFAULT_DIR = os.getenv("HOME", os.getcwd())
 
@@ -103,6 +102,48 @@ class WeixinMP(object):
             headers["Content-Type"] = "application/json;charset=UTF-8"
         # print url, params, headers, data
         return self.fetch("POST", url, params=params, data=data, headers=headers)
+
+    def menu_post(self, path, data, prefix="/cgi-bin", json_encode=True, token=True):
+        """
+        post请求菜单
+        :param path:
+        :param data:
+        :param prefix:
+        :param json_encode:
+        :param token:
+        :return:
+        """
+
+        url = "{0}{1}{2}".format(self.api_uri, prefix, path)
+        params = {}
+        token and params.setdefault("access_token", self.access_token)
+        headers = {}
+        if json_encode:
+            # 解决数据中包含汉字的问题
+            data = bytes(json.dumps(data, ensure_ascii=False), encoding='utf-8')
+            headers["Content-Type"] = "application/json;charset=UTF-8"
+
+        return self.menu_fetch("POST", url, params=params, data=data, headers=headers)
+
+    def menu_fetch(self, method, url, params=None, data=None, headers=None):
+        """
+        post请求菜单
+        :param method:
+        :param url:
+        :param params:
+        :param data:
+        :param headers:
+        :return:
+        """
+        if method == 'POST':
+            new_url = f"{url}?access_token={params['access_token']}"
+            req = requests.post(new_url, data=data, headers=headers)
+            result_json = json.loads(req.text)
+            if req.status_code != 200:
+                raise WeixinMPError(result_json)
+            elif result_json['errcode'] != 0:
+                raise WeixinMPError(result_json)
+            return result_json
 
     @property
     def access_token(self):
@@ -278,7 +319,7 @@ class WeixinMP(object):
 
     def menu_create(self, data):
         data = dict(button=data)
-        return self.post("/menu/create", data)
+        return self.menu_post("/menu/create", data)
 
     def menu_get(self):
         return self.get("/menu/get")
